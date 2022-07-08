@@ -17,8 +17,6 @@ public enum OPTIONS
     /// </summary>
     LOSEUI
 }
-
-
 public class SearchRefrenceEditorWindow : EditorWindow
 {
     public OPTIONS op;
