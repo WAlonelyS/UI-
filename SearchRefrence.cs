@@ -145,8 +145,8 @@ public class SearchRefrenceEditorWindow : EditorWindow
             assetGuid = AssetDatabase.AssetPathToGUID(assetPath);
         }
 
-        //只检查prefab
-        string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/arts/prefabs/ui" });
+        //只检查prefab 查询路径最好精确到prefab根节点 比如说 model.prefab 的路径为 Assets/arts/prefabs/ui/Model/model.prefab 那查询路径是Assets/arts/prefabs/ui 此处的路径为全局查询路径会遍历路径下所有.prefab文件
+        string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { 查询路径 });
 
         int length = guids.Length;
         List<string> fs = new List<string>();//创建fs列表，储存guids
