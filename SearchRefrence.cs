@@ -15,21 +15,26 @@ public enum OPTIONS
     /// <summary>
     ///丢失资源
     /// </summary>
-    LOSEUI
+    LOSEUI,
+    /// <summary>
+    ///文件夹检索
+    /// </summary>
+    UIFILE
 }
+
+
 public class SearchRefrenceEditorWindow : EditorWindow
 {
     public OPTIONS op;
     /// <summary>
     /// 查找引用
     /// </summary>
-    [MenuItem("Assets/SearchRefrence")]
+    [MenuItem("Assets/UI资源检索工具")]
     static void SearchRefrence()
     {
         SearchRefrenceEditorWindow window = (SearchRefrenceEditorWindow)EditorWindow.GetWindow(typeof(SearchRefrenceEditorWindow), false, "Searching", true);
         window.Show();
     }
-
     private static Object searchObject;
     private List<Object> result = new List<Object>();
     private List<Transform> nodeList = new List<Transform>();
@@ -37,7 +42,9 @@ public class SearchRefrenceEditorWindow : EditorWindow
     private GameObject findObject;
     private string assetPath;
     private string assetGuid;
-
+    string selectPath = "";
+    string Path;
+    string[] textureGuids;
     Vector2 v2 = Vector2.zero;
 
     GameObject curObj;
@@ -66,6 +73,27 @@ public class SearchRefrenceEditorWindow : EditorWindow
             }
             EditorGUILayout.EndHorizontal();
             GUILayout.Label("丢失UI节点:");
+        }
+        else if (op == OPTIONS.UIFILE)
+        {
+            GUILayout.Label("搜索UI引用节点:");
+            EditorGUILayout.BeginHorizontal();
+
+            selectPath = GUILayout.TextField(Path, GUILayout.Width(350));
+            if (GUILayout.Button("选择引用节点", GUILayout.Width(100)))
+            {
+                GUILayout.Label("path");
+                selectPath = EditorUtility.OpenFolderPanel("选择配置文件目录", Application.dataPath, " ");
+                Path = selectPath.Substring(selectPath.IndexOf("Assets"));
+                Path = Path.Replace('\\', '/');
+            }
+            if (GUILayout.Button("查找", GUILayout.Width(100)))
+            {
+                searchUI(Path);
+                GetResult();
+            }
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Label("搜索引用节点结果:");
         }
 
         if (nodeList.Count > 0)
@@ -97,7 +125,6 @@ public class SearchRefrenceEditorWindow : EditorWindow
             }
             EditorGUILayout.EndScrollView();
         }
-        Debug.Log("显示滑动框位置" + v2.y);
     }
     //路径
     string path = string.Empty;
@@ -142,10 +169,8 @@ public class SearchRefrenceEditorWindow : EditorWindow
             assetPath = AssetDatabase.GetAssetPath(searchObject);
             assetGuid = AssetDatabase.AssetPathToGUID(assetPath);
         }
-
-        //只检查prefab 查询路径最好精确到prefab根节点 比如说 model.prefab 的路径为 Assets/arts/prefabs/ui/Model/model.prefab 那查询路径是Assets/arts/prefabs/ui 此处的路径为全局查询路径会遍历路径下所有.prefab文件
-        string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { 查询路径 });
-
+        //只检查prefab
+        string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { 检索预制体路径 });
         int length = guids.Length;
         List<string> fs = new List<string>();//创建fs列表，储存guids
         for (int i = 0; i < length; i++)
@@ -153,6 +178,7 @@ public class SearchRefrenceEditorWindow : EditorWindow
             fs.Add(AssetDatabase.GUIDToAssetPath(guids[i]));
         }
         string[] filePath = fs.ToArray();
+
         int startIndex = 0;
 
         EditorApplication.update = delegate ()
@@ -182,8 +208,19 @@ public class SearchRefrenceEditorWindow : EditorWindow
                 Object fileObject = AssetDatabase.LoadAssetAtPath(filePath[startIndex], typeof(Object));
                 result.Add(fileObject);
             }
-
-            if (!isCencel)
+            else if (op == OPTIONS.UIFILE)
+            {
+                string content = File.ReadAllText(filePath[startIndex]);
+                for (int i = 0; i < textureGuids.Length; i++)
+                {
+                    if (content.Contains(textureGuids[i]))
+                    {
+                        Object fileObject = AssetDatabase.LoadAssetAtPath(filePath[startIndex], typeof(Object));
+                        result.Add(fileObject);
+                    }
+                }
+            }
+                if (!isCencel)
             {
                 startIndex++;
                 if (startIndex >= filePath.Length)
@@ -198,7 +235,6 @@ public class SearchRefrenceEditorWindow : EditorWindow
     //输出结果
     void outputResult()
     {
-
         //GUILayout.Label("资源引用预制体:");
         for (int i = 0; i < result.Count; i++)
         {
@@ -233,7 +269,22 @@ public class SearchRefrenceEditorWindow : EditorWindow
                     }
                 }
             }
+            else if (op == OPTIONS.UIFILE)
+            {
+                for (int i = 0; i < textureGuids.Length; i++)
+                {
+                    Object fileObject = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(textureGuids[i]), typeof(Object));
+                    if (image.mainTexture == fileObject)
+                    {
+                        nodeList.Add(image.transform);
+                    }
+                }
+            }
         }
+    }
+    void searchUI(string path)
+    {
+        textureGuids = AssetDatabase.FindAssets("t:Texture", new[] { path });
     }
     private void OnDestroy()
     {
