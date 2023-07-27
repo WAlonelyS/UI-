@@ -58,7 +58,7 @@ namespace LQTools
         /// <summary>
         /// 查找引用
         /// </summary>
-        [MenuItem("leiyan/UI工具/UI检索", false, 1)]
+        [MenuItem("依附的位置", false, 1)]
         static void SearchRefrence()
         {
             SearchRefrenceEditorWindow window = (SearchRefrenceEditorWindow)EditorWindow.GetWindow(typeof(SearchRefrenceEditorWindow), false, "UI检索", true);
