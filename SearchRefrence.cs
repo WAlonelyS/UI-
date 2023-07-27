@@ -278,7 +278,7 @@ namespace LQTools
                         if (GUILayout.Button("一键挂载", GUILayout.Width(100)))
                         {
                             var type = Assembly.Load("Assembly-CSharp").GetType("Lylibs." + addObject.name);
-                            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/arts/prefabs/ui" });
+                            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "项目内场景预制体路径" });
                             int index = 0;
                             EditorApplication.update = delegate ()
                             {
@@ -308,7 +308,7 @@ namespace LQTools
                         {
 
                             var type = Assembly.Load("Assembly-CSharp").GetType("Lylibs." + addObject.name);
-                            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/arts/prefabs/ui" });
+                            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "项目内场景预制体路径" });
                             int index = 0;
                             EditorApplication.update = delegate ()
                             {
@@ -512,7 +512,7 @@ namespace LQTools
                 assetGuid = AssetDatabase.AssetPathToGUID(assetPath);
             }
             //只检查prefab
-            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/arts/prefabs/ui" });
+            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "项目内场景预制体路径 });
             int length = guids.Length;
             fs = new List<string>();//创建fs列表，储存guids
             for (int i = 0; i < length; i++)
