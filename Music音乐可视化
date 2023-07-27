@@ -1,0 +1,89 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class MusicScript : MonoBehaviour
+{
+    /// <summary>
+    /// 声源
+    /// </summary>
+    public AudioSource mAudio;
+    /// <summary>
+    /// 存放频谱数据的数组长度    tips:长度必须为2的n次方，最小64，最大8192(如果你的电脑能承受住的话)
+    /// </summary>
+    [Range(64, 128 * 2)]
+    public int sampleLenght = 128 * 2;
+    /// <summary>
+    /// 音频频率数组
+    /// </summary>
+    private float[] samples;
+    /// <summary>
+    /// UIList
+    /// </summary>
+    private List<Image> uiList = new List<Image>();
+    /// <summary>
+    /// UI所在的父物体
+    /// </summary>
+    public RectTransform uiParentRect;
+    /// <summary>
+    /// 音频波动条预设
+    /// </summary>
+    public GameObject prefab;
+    /// <summary>
+    /// 设置每隔多大距离生成一个UI
+    /// </summary>
+    public float uiDistance;
+    /// <summary>
+    /// 下降的幅度比值
+    /// </summary>
+    [Range(1, 30)]
+    public float UpLerp = 12;
+
+
+    void Start()
+    {
+        //生成并获取全部UI
+        CreatUI();
+        samples = new float[sampleLenght];
+    }
+
+    /// <summary>
+    /// 动态生成UI
+    /// </summary>
+    private void CreatUI()
+    {
+        for (int i = 0; i < sampleLenght; i++)
+        {
+            GameObject prefab_GO = Instantiate(prefab, uiParentRect.transform);
+            //为生成的ui命名
+            prefab_GO.name = string.Format("Sample[{0}]", i + 1);
+            uiList.Add(prefab_GO.GetComponent<Image>());
+            RectTransform rectTransform = prefab_GO.GetComponent<RectTransform>();
+            //设置位置
+            rectTransform.localPosition = new Vector3(rectTransform.sizeDelta.x + uiDistance * i, 0, 0);
+        }
+    }
+
+    void Update()
+    {
+        if (mAudio)
+        {
+            //获取频谱
+            mAudio.GetSpectrumData(samples, 0, FFTWindow.BlackmanHarris);
+            //循环
+            for (int i = 0; i < uiList.Count; i++)
+            {
+                //使用Mathf.Clamp将中间位置的的y限制在一定范围，避免过大
+                //频谱时越向后越小的，为避免后面的数据变化不明显，故在扩大samples[i]时，乘以50+i * i*0.5f
+                Vector3 v3 = uiList[i].transform.localScale;
+                v3 = new Vector3(1, Mathf.Clamp(samples[i] * (50 + i * i * 0.5f), 0, 50), 1);
+                uiList[i].transform.localScale = Vector3.Lerp(uiList[i].transform.localScale, v3, Time.deltaTime * UpLerp);
+            }
+        }
+    }
+
+    public void setAudio(AudioSource audio)
+    {
+        mAudio = audio;
+    }
+}
